@@ -15,6 +15,7 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -48,6 +49,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
 import com.example.foodmeter.MainActivity
 import com.example.foodmeter.ui.result.ResultActivity
 import java.io.File
@@ -89,10 +92,27 @@ fun CameraScreen() {
         }
     )
 
+    // 갤러리에서 사진 선택하는 ActivityResultLauncher
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri: Uri? ->
+            uri?.let {
+                // 사진이 선택되면 결과 화면으로 이동
+                val intent = Intent(context, ResultActivity::class.java).apply {
+                    putExtra("photoUri", it.toString())
+                }
+                context.startActivity(intent)
+            }
+        }
+    )
+
     // 권한 요청
     LaunchedEffect(true) {
         launcher.launch(Manifest.permission.CAMERA)
     }
+
+    //최근 사진 URI 가져오기
+    val recentPhotoUri = getLatestPhotoUri(context)
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (hasCameraPermission) {
@@ -147,6 +167,7 @@ fun CameraScreen() {
                             .padding(bottom = 45.dp), // 버튼과 하단 사이 간격 추가
                         contentAlignment = Alignment.Center
                     ) {
+
                         CaptureButton(imageCapture)
                     }
                 }
@@ -269,4 +290,31 @@ fun BackButton() {
                 context.startActivity(intent)
             }
     )
+}
+
+//갤러리 가장 최근 이미지 가져오는 함수
+fun getLatestPhotoUri(context: android.content.Context): Uri? {
+    val projection = arrayOf(
+        android.provider.MediaStore.Images.Media._ID,
+        android.provider.MediaStore.Images.Media.DATE_ADDED
+    )
+
+    val sortOrder = "${android.provider.MediaStore.Images.Media.DATE_ADDED} DESC"
+    val queryUri = android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+
+    val cursor = context.contentResolver.query(
+        queryUri,
+        projection,
+        null,
+        null,
+        sortOrder
+    )
+
+    cursor?.use {
+        if (it.moveToFirst()) {
+            val id = it.getLong(it.getColumnIndexOrThrow(android.provider.MediaStore.Images.Media._ID))
+            return Uri.withAppendedPath(queryUri, id.toString())
+        }
+    }
+    return null
 }

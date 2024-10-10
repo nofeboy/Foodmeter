@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+    implementation("io.coil-kt:coil-compose:2.1.0")
 
     // Jetpack Compose 및 Material3 사용
     implementation(platform("androidx.compose:compose-bom:2023.08.00"))

@@ -16,6 +16,7 @@ class MainActivity : AppCompatActivity() {
         // 메인 레이아웃 설정
         val mainLayout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
+            setBackgroundResource(R.drawable.homebackground) // 배경 이미지 설정
         }
 
         // 로고 이미지 추가 (상단에 위치하면서 좌우 중앙 정렬)
